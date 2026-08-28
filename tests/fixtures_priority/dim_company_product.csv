@@ -1,0 +1,4 @@
+product_id,company_name,company_code,category,model_name,unit_price_krw,target_margin_rate,release_year,release_quarter,lifecycle_status
+PRD-P001,TestCore Co,TC,모바일 (Mobile),TC-Test Phone,1000000,0.25,2024,Q1,Active
+PRD-P002,NovaTest Inc,NT,태블릿 (Tablet),NT-Test Tab,1000000,0.25,2024,Q1,Active
+PRD-P003,ThirdTest Ltd,TT,스마트 홈가전 (Home Appliances),TT-Test Appliance,1000000,0.25,2024,Q1,Active

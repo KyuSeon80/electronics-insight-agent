@@ -1,0 +1,4 @@
+equipment_id,factory_code,factory_name,line_id,equipment_type,equipment_name,rated_power_kwh,install_date,maintenance_cycle_days,status
+EQ-P01,FAC-P01,FAC-P01 (테스트),LINE-01,SMT-SurfaceMount,테스트 라인 P1,5.0,2023-01-01,30,Operational
+EQ-P02,FAC-P01,FAC-P01 (테스트),LINE-02,CNC-PrecisionMill,테스트 라인 P2,6.0,2023-01-01,45,Operational
+EQ-P03,FAC-P02,FAC-P02 (테스트),LINE-01,ASM-AutoAssembler,테스트 라인 P3,7.0,2023-01-01,30,Operational

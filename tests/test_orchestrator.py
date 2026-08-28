@@ -31,6 +31,7 @@ def _read_trace(run_id: str) -> list[dict]:
         ("설비 이상 확인해줘", "production", {}),
         ("품질 불량 보여줘", "quality", {}),
         ("시장 점유율 알려줘", "market", {"product_id": "PRD-F001"}),
+        ("우선조치 대상 알려줘", "priority", {}),
     ],
 )
 def test_route_classifies_and_traces_each_domain(query, expected_domain, kwargs):

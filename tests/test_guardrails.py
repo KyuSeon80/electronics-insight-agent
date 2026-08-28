@@ -10,7 +10,7 @@ import openpyxl
 import pytest
 
 from insight_agent import domain
-from insight_agent.harness.guardrails import validate_report
+from insight_agent.harness.guardrails import validate_priority_ranking, validate_report
 
 FIXTURES_DIR = Path(__file__).parent / "fixtures"
 
@@ -94,3 +94,28 @@ def test_validate_report_rejects_negative_critical_count():
             "anomaly_run_count": 0,
             "market_share_trend": [],
         })
+
+
+def test_validate_priority_ranking_allows_none_impact_score():
+    # 표본 부족으로 impact_score가 None인 행은 정상이다 (docs/prd.md 7절)
+    validate_priority_ranking([
+        {"product_id": "PRD-P002", "impact_score": None},
+        {"product_id": "PRD-P001", "impact_score": 400_000_000.0, "cumulative_revenue_krw": 400_000_000.0},
+    ])
+
+
+def test_validate_priority_ranking_rejects_missing_impact_score_field():
+    with pytest.raises(ValueError):
+        validate_priority_ranking([{"product_id": "PRD-P001"}])
+
+
+def test_validate_priority_ranking_rejects_negative_impact_score():
+    with pytest.raises(ValueError):
+        validate_priority_ranking([{"product_id": "PRD-P001", "impact_score": -1.0}])
+
+
+def test_validate_priority_ranking_rejects_negative_revenue():
+    with pytest.raises(ValueError):
+        validate_priority_ranking([
+            {"product_id": "PRD-P001", "impact_score": 1.0, "cumulative_revenue_krw": -1.0}
+        ])

@@ -28,3 +28,27 @@ def validate_report(report: dict) -> None:
 
 def check_source_consistency(tables: domain.Tables) -> list[dict]:
     return domain.check_source_consistency(tables, XLSX_PATH)
+
+
+REQUIRED_PRIORITY_ROW_FIELDS = {"impact_score"}
+
+
+def validate_priority_ranking(ranking: list[dict]) -> None:
+    """우선조치 랭킹(domain.get_market_impact_score_by_*) 출력을 검증한다.
+
+    impact_score는 표본 부족 시 None일 수 있으므로(docs/prd.md 7절) None 자체는
+    허용하되, 값이 있으면 음수(상관계수 x 매출액이 음수가 될 수 없음)를
+    허용하지 않는다. 매출액 필드가 있으면 마찬가지로 음수를 걸러낸다.
+    """
+    for row in ranking:
+        missing = REQUIRED_PRIORITY_ROW_FIELDS - row.keys()
+        if missing:
+            raise ValueError(f"priority ranking row missing required fields: {missing}")
+
+        score = row["impact_score"]
+        if score is not None and score < 0:
+            raise ValueError(f"impact_score must be >= 0 or None, got {score}")
+
+        revenue = row.get("cumulative_revenue_krw")
+        if revenue is not None and revenue < 0:
+            raise ValueError(f"cumulative_revenue_krw must be >= 0, got {revenue}")

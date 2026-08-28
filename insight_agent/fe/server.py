@@ -19,7 +19,7 @@ from typing import Any, Callable
 from urllib.parse import parse_qs, urlparse
 
 from insight_agent import domain
-from insight_agent.agents import integration_agent
+from insight_agent.agents import integration_agent, priority_agent
 from insight_agent.config import OUTPUTS_DIR, PROJECT_ROOT, RUNS_DIR
 from insight_agent.harness.trace import TraceLogger
 from insight_agent.hitl import approvals
@@ -71,7 +71,9 @@ def api_run(handler: "Handler", match: re.Match) -> Any:
         raise ApiError(400, "product_id is required")
     trace = TraceLogger()
     try:
-        outcome = integration_agent.run(product_id, trace=trace)
+        # FE에서 직접 요청한 건은 임계치와 무관하게 항상 사람 승인을 거치게 한다
+        # (대시보드 "분석 실행"/"원인 리포트 발행 요청" 버튼 공통 동작).
+        outcome = integration_agent.run(product_id, trace=trace, force_approval=True)
     except (ValueError, RuntimeError) as exc:
         message = str(exc)
         if "unknown product_id" in message:
@@ -152,6 +154,48 @@ def api_hotl(handler: "Handler", match: re.Match) -> Any:
 def api_hotl_refresh(handler: "Handler", match: re.Match) -> Any:
     tables = domain.load_tables()
     return monitor.build_snapshot(tables)
+
+
+@route("GET", r"/api/priority")
+def api_priority(handler: "Handler", match: re.Match) -> Any:
+    group_by = handler.query.get("group_by", ["product_id"])[0]
+    try:
+        top_n = int(handler.query.get("top_n", ["10"])[0])
+    except ValueError:
+        raise ApiError(400, "top_n must be an integer")
+
+    try:
+        outcome = priority_agent.run(group_by=group_by, top_n=top_n)
+    except ValueError as exc:
+        raise ApiError(400, str(exc))
+
+    OUTPUTS_DIR.mkdir(parents=True, exist_ok=True)
+    out_path = OUTPUTS_DIR / f"priority_{group_by}.json"
+    out_path.write_text(json.dumps(outcome, ensure_ascii=False, indent=2), encoding="utf-8")
+    return outcome
+
+
+@route("GET", r"/api/priority/monthly/(?P<entity_id>[\w-]+)")
+def api_priority_monthly(handler: "Handler", match: re.Match) -> Any:
+    group_by = handler.query.get("group_by", ["product_id"])[0]
+    tables = domain.load_tables()
+    try:
+        df = domain.get_monthly_defect_vs_sales_by_group(tables, group_by, match.group("entity_id"))
+    except ValueError as exc:
+        raise ApiError(400, str(exc))
+    return domain.df_to_records(df)
+
+
+@route("GET", r"/api/priority/revenue-projection/(?P<entity_id>[\w-]+)")
+def api_priority_revenue_projection(handler: "Handler", match: re.Match) -> Any:
+    group_by = handler.query.get("group_by", ["product_id"])[0]
+    tables = domain.load_tables()
+    target = handler.query.get("target_defect_rate_pct", [None])[0]
+    target_pct = float(target) if target not in (None, "") else None
+    try:
+        return domain.get_revenue_projection(tables, match.group("entity_id"), target_pct, group_col=group_by)
+    except ValueError as exc:
+        raise ApiError(400, str(exc))
 
 
 @route("GET", r"/api/reports")

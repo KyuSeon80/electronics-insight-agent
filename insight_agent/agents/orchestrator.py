@@ -8,13 +8,20 @@ from __future__ import annotations
 
 from typing import Any, Optional
 
-from insight_agent.agents import integration_agent, market_agent, production_agent, quality_agent
+from insight_agent.agents import (
+    integration_agent,
+    market_agent,
+    priority_agent,
+    production_agent,
+    quality_agent,
+)
 from insight_agent.harness.trace import TraceLogger
 
 ROUTING_TABLE = {
     "production": ["설비", "생산", "oee", "가동률", "라인"],
     "quality": ["불량", "품질", "결함", "defect"],
     "market": ["매출", "점유율", "판매", "시장"],
+    "priority": ["우선조치", "우선순위", "랭킹", "top", "impact"],
     "integration": ["원인", "영향", "통합", "리포트", "인과"],
 }
 
@@ -42,6 +49,8 @@ def route(query: str, trace: Optional[TraceLogger] = None, **kwargs: Any) -> dic
         result = quality_agent.run(**kwargs)
     elif domain == "market":
         result = market_agent.run(**kwargs)
+    elif domain == "priority":
+        result = priority_agent.run(**kwargs)
     else:
         result = integration_agent.run(**kwargs)
     return {"domain": domain, "result": result, "run_id": trace.run_id}

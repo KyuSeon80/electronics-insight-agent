@@ -1,0 +1,1 @@
+sensor_log_id,run_id,equipment_id,timestamp,temp_celsius,vibration_mms,pressure_bar,torque_nm,peak_current_amp,anomaly_flag

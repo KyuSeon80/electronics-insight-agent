@@ -60,3 +60,25 @@
 - `@mcp.tool`은 반드시 `domain.py`의 함수를 얇게 감싸는 형태로만 추가한다.
 - 새 tool을 추가하면 `tests/test_mcp_roundtrip.py`에 최소 1개 케이스를
   추가한다.
+
+## 우선조치 대시보드 (docs/prd.md 기반) 작업 시 체크리스트
+
+`docs/prd.md`("불량-매출 영향도 우선조치 대시보드")를 구현할 때도 위 레이어
+경계는 그대로 적용된다. 새 레이어를 만들지 않는다.
+
+1. product_id/equipment_id/factory_code 불량률 집계, 월별
+   `fact_production_run` x `fact_market_sales` 조인, 영향도 점수 계산은
+   전부 `domain.py`에 함수로 추가한다 — 다른 레이어가 컬럼명이나 조인
+   키를 직접 알게 하지 않는다.
+2. 영향도 점수 계산(상관계수 x 누적매출 가중)은 `agents/integration_agent.py`
+   또는 신규 `agents/priority_agent.py`에 배치하고, 반드시
+   `mymcp.client.McpClient`를 거쳐 `domain.py` 함수를 호출한다.
+3. 심각도 가중치(Critical/Major/Minor)처럼 PRD에 `UNKNOWN`으로 표기된
+   값은 하드코딩하지 않고 `config.py`의 설정값으로 둔다 — 확정되지 않은
+   가정임을 코드에서도 알 수 있게 한다.
+4. 영향도 점수 결과(범위, 부호, 매출액 음수 불가 등)를 검증하는 함수를
+   `harness/guardrails.py`에 추가하고 통과시킨다.
+5. FE에 "우선조치 대시보드" 탭을 추가할 때도 `outputs/runs/approvals`만
+   읽고 쓰는 기존 규칙을 유지한다 — 새로운 산출물 디렉터리를 만들지 않는다.
+6. 공장↔리전 매핑처럼 데이터셋에 없는 값은 PRD와 동일하게 `UNKNOWN`으로
+   남기고 임의로 추정하지 않는다.

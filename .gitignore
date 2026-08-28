@@ -15,3 +15,7 @@ insight_agent/evals/golden_defects.jsonl
 # PRD는 교육생이 Day 1(데이터 분석 -> PRD 작성) 실습으로 직접 작성해야 하므로
 # 완성본을 repo에 포함하지 않는다 (clone 시 정답이 미리 보이지 않도록).
 docs/prd.md
+
+# AGENTS.md 규칙: 실데이터(dataset_1, DATASET_DIR가 가리키는 실제 경로)는
+# 이 repo에 절대 포함하지 않는다.
+dataset_1/

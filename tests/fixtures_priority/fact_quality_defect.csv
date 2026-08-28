@@ -1,0 +1,1 @@
+defect_id,run_id,product_id,equipment_id,inspection_datetime,defect_type,defect_qty,severity,root_cause,action_taken,inspector_id
